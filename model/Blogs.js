@@ -22,6 +22,13 @@ const blogSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    tags: [{
+        type: String,
+    }],
+    isPaid:{
+        type: Boolean,
+        default: false
+    },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

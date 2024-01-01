@@ -35,7 +35,7 @@ export const loginUser = async (req, res) => {
             message: "Phone number is required"
         })
 
-        const user = await UserModel.findOneAndUpdate({ phone, isLoggedIn: false }, { isLoggedIn: true }, { new: true });
+        const user = await UserModel.findOneAndUpdate({ phone }, { isLoggedIn: true }, { new: true });
         if (!user) return res.status(400).json({
             success: false,
             message: "No such User found"
@@ -70,7 +70,7 @@ export const logoutUser = async (req, res) => {
     const user = req.user;
     try {
         const result = await UserModel.findOneAndUpdate(
-            { _id: user.id, isLoggedIn: true },
+            { _id: user.id, },
             { isLoggedIn: false },
             { new: true }
         )
@@ -133,9 +133,7 @@ export const createBlog = async (req, res) => {
         })
 
         const result = await BlogModel.create({
-            title,
-            description,
-            content,
+            ...req.body,
             createdBy: user.id
         })
         return res.status(201).json({
@@ -278,7 +276,7 @@ export const getComments = async (req, res) => {
             success: false,
             message: "blog id is required"
         })
-        const comments = await CommentsModel.find({ blogId }).populate("createdBy");
+        const comments = await CommentsModel.find({ blogId }).populate("createdBy").sort("desc");
         res.status(200).json({
             success: true,
             message: "Success fully fetched",
