@@ -2,6 +2,7 @@ import { CommentsModel } from "../model/Comments.js";
 import { BlogModel } from "../model/Blogs.js";
 import { UserModel } from "../model/userModel.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 export const createUser = async (req, res) => {
     try {
@@ -124,9 +125,10 @@ export const getSingleUser = async (req, res) => {
 }
 
 
-export const getAllUsers = async(req, res)=>{
+export const getAllUsers = async (req, res) => {
+    const user = req.user;
     try {
-        const users = await UserModel.find({});
+        const users = await UserModel.find({ _id: { $ne: user.id } });
         return res.status(200).json({
             success: true,
             message: "Success",
@@ -140,15 +142,15 @@ export const getAllUsers = async(req, res)=>{
     }
 }
 
-export const updateUser = async(req, res)=>{
+export const updateUser = async (req, res) => {
     const user = req.user;
     try {
         const result = await UserModel.findOneAndUpdate(
-            {_id: user.id},
+            { _id: user.id },
             req.body,
-            {new: true}   
+            { new: true }
         )
-        if(!result) return res.status(400).json({
+        if (!result) return res.status(400).json({
             success: false,
             message: "Wrong UserId",
         })
@@ -283,7 +285,7 @@ export const likeUnlikeBlogs = async (req, res) => {
 export const createComment = async (req, res) => {
     const user = req.user;
     try {
-        const {blogId} = req.params;
+        const { blogId } = req.params;
         const { comment } = req.body;
         console.log(req.body);
         if (!blogId || !comment) return res.status(400).json({
@@ -330,5 +332,60 @@ export const getComments = async (req, res) => {
             success: false,
             message: error.message || "Internal Server Error"
         })
+    }
+}
+
+
+export const followUnfollowUser = async (req, res) => {
+    const user = req.user;
+    const session = await mongoose.startSession();
+    try {
+        const { userId } = req.params;
+        const { isFollow } = req.body;
+        if (!userId) return res.status(400).json({
+            success: false,
+            message: "Please provide userId"
+        });
+        let updateQueryFollower;
+        let updateQueryFollowing;
+        updateQueryFollower = isFollow ? { $addToSet: { followers: userId } } : { $pull: { followers: userId } };
+        updateQueryFollowing = isFollow ? { $addToSet: { following: userId } } : { $pull: { following: userId } };
+
+
+        await session.startTransaction();
+
+            const updateFollower = await UserModel.findOneAndUpdate(
+                { _id: user.id },
+                updateQueryFollowing,
+                { new: true }
+            );
+            const updateFollowing = await UserModel.findOneAndUpdate(
+                { _id: userId },
+                updateQueryFollower,
+                { new: true }
+            );
+            console.log(updateFollower, updateFollowing, "total")
+            const finalRes = await Promise.all([updateFollower, updateFollowing])
+           console.log(finalRes, "finalrs")
+            if (!finalRes) {
+                throw new Error("Some issue in updating either the User being followed or follower");
+            }
+
+            await session.commitTransaction();
+            return res.status(201).json({
+                success: true,
+                message: "Success",
+                data: updateFollower
+            })
+    
+      
+    } catch (error) {
+        await session.abortTransaction();
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        })
+    } finally {
+        await session.endSession();
     }
 }
