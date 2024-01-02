@@ -123,6 +123,48 @@ export const getSingleUser = async (req, res) => {
     }
 }
 
+
+export const getAllUsers = async(req, res)=>{
+    try {
+        const users = await UserModel.find({});
+        return res.status(200).json({
+            success: true,
+            message: "Success",
+            data: users
+        })
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        })
+    }
+}
+
+export const updateUser = async(req, res)=>{
+    const user = req.user;
+    try {
+        const result = await UserModel.findOneAndUpdate(
+            {_id: user.id},
+            req.body,
+            {new: true}   
+        )
+        if(!result) return res.status(400).json({
+            success: false,
+            message: "Wrong UserId",
+        })
+        return res.status(201).json({
+            success: true,
+            message: "User Successfully Updated",
+            data: result
+        })
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        })
+    }
+}
+
 export const createBlog = async (req, res) => {
     const user = req.user;
     try {

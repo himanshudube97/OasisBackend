@@ -14,7 +14,6 @@ export const verifyToken =async (req, res, next) => {
     // Verify and decode the token
     jwt.verify(token.replace('Bearer ', ''), process.env.JWT_ACCESS_TOKEN_SECRET, async(err, decoded) => {
         if (err) {
-            await UserModel.findOneAndUpdate({phone: req.body.phone, isLoggedIn: true}, {isLoggedIn:false}, {new : true})
             return res.status(401).json({ success: false, message: 'Invalid token.' });
         }
 

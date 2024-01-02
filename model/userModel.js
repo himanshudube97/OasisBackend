@@ -6,6 +6,18 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
+    title: {
+        type:String,
+        trim: true,
+    },
+    bio: {
+        type: String,
+        trim: true,
+    },
+    about: {
+        type: String,
+        trim: true,
+    },
     phone: {
         type: String,
         required: true,
