@@ -408,16 +408,21 @@ export const followUnfollowUser = async (req, res) => {
 
 export const getAllChats = async (req, res) => {
     const userOne = req.user.id;
+    console.log(userOne, "user")
     try {
-        const {userId: userSecond } = req.params;
+        const { userId: userSecond } = req.params;
         if (!userOne || !userSecond) return res.status(400).json({
             success: false,
             message: "User Ids are missing, both userIds are required"
         })
-        const resp = await MsgModel.findOne(
-            { userOne, userSecond }
-        )
-        if (!resp) res.status(400).json({
+        const resp = await MsgModel.findOne({
+            $or: [
+                { userOne: userOne, userSecond: userSecond },
+                { userOne: userSecond, userSecond: userOne }
+            ]
+        });
+        console.log(resp, "respons")
+        if (!resp) return res.status(400).json({
             success: false,
             message: "No Message Section found",
 
