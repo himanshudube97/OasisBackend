@@ -3,6 +3,7 @@ import { BlogModel } from "../model/Blogs.js";
 import { UserModel } from "../model/userModel.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { MsgModel } from "../model/Message.js";
 
 export const createUser = async (req, res) => {
     try {
@@ -346,40 +347,54 @@ export const followUnfollowUser = async (req, res) => {
             success: false,
             message: "Please provide userId"
         });
+        const ifMsgSectionExists = await MsgModel.findOne({ createdBy: { $in: [user.id, userId] } });
+        console.log(ifMsgSectionExists, "if")
         let updateQueryFollower;
         let updateQueryFollowing;
         updateQueryFollower = isFollow ? { $addToSet: { followers: userId } } : { $pull: { followers: userId } };
         updateQueryFollowing = isFollow ? { $addToSet: { following: userId } } : { $pull: { following: userId } };
 
 
-        await session.startTransaction();
+        session.startTransaction();
 
-            const updateFollower = await UserModel.findOneAndUpdate(
-                { _id: user.id },
-                updateQueryFollowing,
-                { new: true }
-            );
-            const updateFollowing = await UserModel.findOneAndUpdate(
-                { _id: userId },
-                updateQueryFollower,
-                { new: true }
-            );
-            console.log(updateFollower, updateFollowing, "total")
-            const finalRes = await Promise.all([updateFollower, updateFollowing])
-           console.log(finalRes, "finalrs")
-            if (!finalRes) {
-                throw new Error("Some issue in updating either the User being followed or follower");
-            }
+        const updateFollower = await UserModel.findOneAndUpdate(
+            { _id: user.id },
+            updateQueryFollowing,
+            { new: true }
+        );
+        const updateFollowing = await UserModel.findOneAndUpdate(
+            { _id: userId },
+            updateQueryFollower,
+            { new: true }
+        );
+        let resp;
+        if (!ifMsgSectionExists) {
+            resp = await MsgModel.create({
+                userOne: user.id,
+                userSecond: userId,
+                createdBy: user.id
+            });
+            console.log(resp, "resppp")
+            if (!resp) throw new Error("some error")
+        }
 
-            await session.commitTransaction();
-            return res.status(201).json({
-                success: true,
-                message: "Success",
-                data: updateFollower
-            })
-    
-      
+        console.log(updateFollower, updateFollowing, "total")
+        const finalRes = await Promise.all([updateFollower, updateFollowing,])
+        console.log(finalRes, "finalrs")
+        if (!finalRes) {
+            throw new Error("Some issue in updating either the User being followed or follower");
+        }
+
+        await session.commitTransaction();
+        return res.status(201).json({
+            success: true,
+            message: "Success",
+            data: updateFollower
+        })
+
+
     } catch (error) {
+        console.log(error, "error")
         await session.abortTransaction();
         res.status(error.statusCode || 500).json({
             success: false,
@@ -387,5 +402,35 @@ export const followUnfollowUser = async (req, res) => {
         })
     } finally {
         await session.endSession();
+    }
+}
+
+
+export const getAllChats = async (req, res) => {
+    const userOne = req.user.id;
+    try {
+        const {userId: userSecond } = req.params;
+        if (!userOne || !userSecond) return res.status(400).json({
+            success: false,
+            message: "User Ids are missing, both userIds are required"
+        })
+        const resp = await MsgModel.findOne(
+            { userOne, userSecond }
+        )
+        if (!resp) res.status(400).json({
+            success: false,
+            message: "No Message Section found",
+
+        })
+        return res.status(200).json({
+            success: true,
+            message: "Successfully fetched",
+            data: resp
+        })
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        })
     }
 }

@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createUser, loginUser, getSingleUser, createBlog, getAllBlogs, getSingleBlog, likeUnlikeBlogs, createComment, getComments, logoutUser, getAllUsers, updateUser, followUnfollowUser } from "../controllers/controllers.js";
+import { createUser, loginUser, getSingleUser, createBlog, getAllBlogs, getSingleBlog, likeUnlikeBlogs, createComment, getComments, logoutUser, getAllUsers, updateUser, followUnfollowUser, getAllChats } from "../controllers/controllers.js";
 import { verifyToken } from "../middleware/validate.js";
 
 const router = express.Router();
@@ -17,7 +17,8 @@ router.route("/get-single-blog/:blogId").get(verifyToken, getSingleBlog);
 router.route("/like-unlike-blog/:blogId").post(verifyToken, likeUnlikeBlogs);
 router.route("/create-comment/:blogId").post(verifyToken, createComment);
 router.route("/get-comments/:blogId").get(verifyToken, getComments);
-router.route(`/follow-unfollow-user/:userId`).post(verifyToken, followUnfollowUser)
+router.route("/follow-unfollow-user/:userId").post(verifyToken, followUnfollowUser);
+router.route("/get-all-chats/:userId").get(verifyToken, getAllChats);
 export default router;
 
 
