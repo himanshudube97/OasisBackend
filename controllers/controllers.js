@@ -347,8 +347,13 @@ export const followUnfollowUser = async (req, res) => {
             success: false,
             message: "Please provide userId"
         });
-        const ifMsgSectionExists = await MsgModel.findOne({ createdBy: { $in: [user.id, userId] } });
-        console.log(ifMsgSectionExists, "if")
+        const ifMsgSectionExists = await MsgModel.findOne({
+            $or: [
+                { userOne: user.id, userSecond: userId },
+                { userOne: userId, userSecond: user.id }
+            ]
+        });
+        console.log(ifMsgSectionExists, "ifdfdsfdsfdf")
         let updateQueryFollower;
         let updateQueryFollowing;
         updateQueryFollower = isFollow ? { $addToSet: { followers: userId } } : { $pull: { followers: userId } };
@@ -422,6 +427,35 @@ export const getAllChats = async (req, res) => {
             ]
         });
         console.log(resp, "respons")
+        if (!resp) return res.status(400).json({
+            success: false,
+            message: "No Message Section found",
+
+        })
+        return res.status(200).json({
+            success: true,
+            message: "Successfully fetched",
+            data: resp
+        })
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        })
+    }
+}
+
+export const getMyChats = async (req, res) => {
+    const userId = req.user.id;
+    try {
+
+        const resp = await MsgModel.find({
+            $or: [
+                { userOne: userId },
+                { userSecond: userId }
+            ]
+        });
+        console.log(resp, "rsponsive");
         if (!resp) return res.status(400).json({
             success: false,
             message: "No Message Section found",

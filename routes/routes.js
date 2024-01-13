@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createUser, loginUser, getSingleUser, createBlog, getAllBlogs, getSingleBlog, likeUnlikeBlogs, createComment, getComments, logoutUser, getAllUsers, updateUser, followUnfollowUser, getAllChats } from "../controllers/controllers.js";
+import { createUser, loginUser, getSingleUser, createBlog, getAllBlogs, getSingleBlog, likeUnlikeBlogs, createComment, getComments, logoutUser, getAllUsers, updateUser, followUnfollowUser, getAllChats, getMyChats } from "../controllers/controllers.js";
 import { verifyToken } from "../middleware/validate.js";
 
 const router = express.Router();
@@ -19,6 +19,7 @@ router.route("/create-comment/:blogId").post(verifyToken, createComment);
 router.route("/get-comments/:blogId").get(verifyToken, getComments);
 router.route("/follow-unfollow-user/:userId").post(verifyToken, followUnfollowUser);
 router.route("/get-all-chats/:userId").get(verifyToken, getAllChats);
+router.route("/get-my-chats").get(verifyToken, getMyChats);
 export default router;
 
 

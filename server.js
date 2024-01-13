@@ -38,26 +38,36 @@ const io = new Server(server, {
 io.on("connection", async (socket) => {
     // console.log(socket.handshake, "socket");
     // console.log(socket.handshake.auth, "sockkkkk")
-    socket.join(socket.handshake.auth._id);
+    // socket.join(socket.handshake.auth._id);
+    console.log(socket.handshake.auth, "socketttt")
+    const { userData, chats } = socket.handshake.auth;
 
-    socket.emit("connection", "Hey you are connected");
+    chats.forEach((chat) => {
+        socket.join(chat._id);
+    })
+
+    socket.emit("connection", { socketId: socket.id });
 
     socket.on("join-chat-room", ({ roomId }) => {
         socket.join(roomId);
     })
-
+    // console.log(io.sockets.sockets, "sockets")
     socket.on("pvt-message", (msg) => {
         console.log(msg, "msg")
 
-        const clientsInRoom = io.sockets.adapter.rooms.get(msg.chatId);
-        const isMultipleClients = clientsInRoom && clientsInRoom.size > 1;
-        console.log(clientsInRoom, "clinets");
-        if (isMultipleClients) {
-            io.to(msg.chatId).emit("pvt-message", msg);
-        }else{
-            socket.join(msg.toId);
-            io.to(msg.toId).emit("pvt-message", msg);
-        }
+        // const clientsInRoom = io.sockets.adapter.rooms.get(msg.chatId);
+        // const isMultipleClients = clientsInRoom && clientsInRoom.size > 1;
+    
+
+        io.to(msg.chatId).emit("pvt-message", msg);
+
+        // else{
+        //     socket.to(msg.chatId).emit("pvt-message", msg);
+        //     // socket.join(msg.toId);
+        //     console.log("coollllllllllllllllllll")
+        //     // io.to(msg.toId).to(msg.fromId).emit("pvt-message", msg);
+
+        // }
 
 
         // // socket.join(msg.chatId);
