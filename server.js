@@ -48,9 +48,9 @@ io.on("connection", async (socket) => {
 
     socket.emit("connection", { socketId: socket.id });
 
-    socket.on("join-chat-room", ({ roomId }) => {
-        socket.join(roomId);
-    })
+    // socket.on("join-chat-room", ({ roomId }) => {
+    //     socket.join(roomId);
+    // })
     // console.log(io.sockets.sockets, "sockets")
     socket.on("pvt-message", (msg) => {
         console.log(msg, "msg")
