@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  blog-nodejs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-4000}:8000"
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=${PORT:-4000}
+      - DB_URI=${DB_URI}
+ 
+  mongodb:
+    image: mongo:6.0.3
+    ports:
+      - "27017:27017"
+

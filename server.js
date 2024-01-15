@@ -101,6 +101,7 @@ io.on("connection", async (socket) => {
 // app.get("/delete", async(req, res)=>{
 //     await UserModel.deleteMany({});
 // })
-server.listen(4000, () => {
-    console.log("server listening to port 4000")
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+    console.log(`server listening to port ${PORT}`)
 })
