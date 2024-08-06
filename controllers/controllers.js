@@ -197,7 +197,7 @@ export const createBlog = async (req, res) => {
 
 export const getAllBlogs = async (req, res) => {
     try {
-        const result = await BlogModel.find({});
+        const result = await BlogModel.find({}).populate("createdBy");
         const blogCount = await BlogModel.countDocuments({});
 
         //here only we will check
